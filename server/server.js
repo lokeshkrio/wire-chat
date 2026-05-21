@@ -1,100 +1,193 @@
-import WebSocket, { WebSocketServer } from "ws";
-import { createSystemPacket } from "../shared/protocol.js";
-import { validatePacket } from "../shared/validator.js";
-import { logMessage } from "./modules/logger.js";
+import WebSocket, {
+  WebSocketServer,
+} from "ws";
+
+import {
+  createSystemPacket,
+} from "../shared/protocol.js";
+
+import {
+  validatePacket,
+} from "../shared/validator.js";
+
+import {
+  logMessage,
+} from "./modules/logger.js";
 
 const wss = new WebSocketServer({
   port: 5000,
 });
 
-const clients = new Set();
-const usernames = new Set();
+// USERNAME -> SOCKET
+const users = new Map();
 
 wss.on("connection", (ws) => {
-  console.log("Client connected");
 
-  clients.add(ws);
+  console.log("Client connected");
 
   ws.username = null;
 
   ws.on("message", (message) => {
-    const packet = JSON.parse(message.toString());
 
-    // PACKET VALIDATION
+    const packet = JSON.parse(
+      message.toString()
+    );
+
+    // VALIDATION
     if (!validatePacket(packet)) {
-      console.log("Invalid packet rejected");
 
-      return;
-    }
-
-    // username varification
-    if (usernames.has(packet.username)) {
-      ws.send(
-        JSON.stringify({
-          type: "error",
-          content: "Username already taken",
-        }),
+      console.log(
+        "Invalid packet rejected"
       );
 
-      return false;
+      return;
     }
 
-    // FIRST PACKET = USER IDENTITY
+    // AUTH / FIRST JOIN
     if (!ws.username) {
-      usernames.add(packet.username);
+
+      if (
+        users.has(packet.username)
+      ) {
+
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            content:
+              "Username already taken",
+          })
+        );
+
+        return;
+      }
+
       ws.username = packet.username;
 
-      console.log(`${ws.username} joined`);
-      const systemPacket = createSystemPacket(`${ws.username} joined Wire`);
-      logMessage(`${ws.username} joined`);
+      users.set(
+        ws.username,
+        ws
+      );
 
-      clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify(systemPacket));
-        }
-      });
+      console.log(
+        `${ws.username} joined`
+      );
+
+      const systemPacket =
+        createSystemPacket(
+          `${ws.username} joined Wire`
+        );
+
+      broadcast(systemPacket);
 
       return;
     }
 
-    // MESSAGE PACKETS
+    // NORMAL MESSAGE
     if (packet.type === "message") {
-      packet["username"] = ws.username;
-      logMessage(packet.username + ": " + packet.content);
 
-      clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify(packet));
-        }
-      });
-    }
-    if (packet.type === "command") {
-      packet["username"] = ws.username;
-      logMessage(packet.username + ": " + packet.arg + packet.content);
+      const outgoingPacket = {
+        type: "message",
+        username: ws.username,
+        content: packet.content,
+      };
 
-      clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify(packet));
-        }
-      });
+      logMessage(
+        `${ws.username}: ${packet.content}`
+      );
+
+      broadcast(outgoingPacket);
+
     }
+
+    // DIRECT MESSAGE
+    if (
+      packet.type === "command" &&
+      packet.command === "dm"
+    ) {
+
+      const targetSocket =
+        users.get(packet.target);
+
+      if (!targetSocket) {
+
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            content:
+              "User not found",
+          })
+        );
+
+        return;
+      }
+
+      const dmPacket = {
+        type: "dm",
+        from: ws.username,
+        content: packet.content,
+      };
+
+      targetSocket.send(
+        JSON.stringify(dmPacket)
+      );
+
+      ws.send(
+        JSON.stringify({
+          type: "system",
+          content:
+            `DM sent to ${packet.target}`,
+        })
+      );
+
+    }
+
   });
 
   ws.on("close", () => {
-    clients.delete(ws);
-
-    console.log("Client disconnected");
 
     if (ws.username) {
-      const systemPacket = createSystemPacket(`${ws.username} left Wire`);
-      usernames.delete(ws.username);
-      clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify(systemPacket));
-        }
-      });
+
+      users.delete(
+        ws.username
+      );
+
+      const systemPacket =
+        createSystemPacket(
+          `${ws.username} left Wire`
+        );
+
+      broadcast(systemPacket);
+
     }
+
+    console.log(
+      "Client disconnected"
+    );
+
   });
+
 });
 
-console.log("Wire server running on ws://localhost:5000");
+// BROADCAST HELPER
+function broadcast(packet) {
+
+  users.forEach((clientSocket) => {
+
+    if (
+      clientSocket.readyState ===
+      WebSocket.OPEN
+    ) {
+
+      clientSocket.send(
+        JSON.stringify(packet)
+      );
+
+    }
+
+  });
+
+}
+
+console.log(
+  "Wire server running on ws://localhost:5000"
+);
