@@ -1,8 +1,10 @@
 // Join Handler Module
-import { createSystemPacket } from "../../../shared/protocol.js";
-import { broadcast } from "../services/broadcast.js";
 
-export function handleJoin(ws, packet, users) {
+import { createSystemPacket } from "../../../shared/protocol.js";
+
+import { broadcastToRoom } from "../services/broadcast.js";
+
+export function handleJoin(ws, packet, users, rooms) {
   if (users.has(packet.username)) {
     ws.send(
       JSON.stringify({
@@ -16,11 +18,17 @@ export function handleJoin(ws, packet, users) {
 
   ws.username = packet.username;
 
+  ws.room = "general";
+
   users.set(ws.username, ws);
 
-  console.log(`${ws.username} joined`);
+  if (!rooms.has("general")) {
+    rooms.set("general", new Set());
+  }
 
-  const systemPacket = createSystemPacket(`${ws.username} joined`);
+  rooms.get("general").add(ws);
 
-  broadcast(users, systemPacket);
+  const systemPacket = createSystemPacket(`${ws.username} joined general`);
+
+  broadcastToRoom("general", rooms, systemPacket);
 }

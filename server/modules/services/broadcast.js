@@ -1,9 +1,17 @@
 // Broadcasting Module
 
-export function broadcast(users, pkt) {
-  users.forEach((socket) => {
+import WebSocket from "ws";
+
+export function broadcastToRoom(room, rooms, packet) {
+  const roomUsers = rooms.get(room);
+
+  if (!roomUsers) {
+    return;
+  }
+
+  roomUsers.forEach((socket) => {
     if (socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify(pkt));
+      socket.send(JSON.stringify(packet));
     }
   });
 }
