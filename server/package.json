@@ -1,0 +1,22 @@
+{
+  "name": "wire-server",
+  "version": "0.0.1",
+  "description": "wire server based on websocket ",
+  "keywords": [
+    "server",
+    "wire",
+    "wire-server",
+    "websocket"
+  ],
+  "license": "ISC",
+  "author": "lokeshkr",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "uid": "^2.0.2",
+    "ws": "^8.20.1"
+  }
+}

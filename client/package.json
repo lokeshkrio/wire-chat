@@ -1,0 +1,21 @@
+{
+  "name": "wire-client",
+  "version": "0.0.1",
+  "description": "wire client interface",
+  "keywords": [
+    "client",
+    "wire",
+    "wire-client"
+  ],
+  "license": "ISC",
+  "author": "lokeshkr",
+  "type": "module",
+  "main": "client.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "ws": "^8.20.1"
+  }
+}
