@@ -310,7 +310,7 @@ This project is licensed under the MIT License.
 
 ## Author
 
-**Lokesh Kumar**[github.com/lokeshkrio]
+**Lokesh Kumar**[github.com/lokeshkrio] @ 2026
 
 Computer Science Student interested in
 
