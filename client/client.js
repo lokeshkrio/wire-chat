@@ -2,13 +2,9 @@ import WebSocket from "ws";
 import readline from "readline";
 import chalk from "chalk";
 
-import {
-  createMessagePacket,
-} from "../shared/protocol.js";
+import { createMessagePacket } from "../shared/protocol.js";
 
-const ws = new WebSocket(
-  "ws://127.0.0.1:5000"
-);
+const ws = new WebSocket("ws://127.0.0.1:5000");
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -18,167 +14,124 @@ const rl = readline.createInterface({
 let username = "";
 
 ws.on("open", () => {
+  rl.question("Enter username: ", (name) => {
+    username = name;
 
-  rl.question(
-    "Enter username: ",
-    (name) => {
+    // JOIN PACKET
+    ws.send(
+      JSON.stringify({
+        type: "join",
+        username,
+      }),
+    );
 
-      username = name;
+    console.log(chalk.green(`Connected as ${username}`));
 
-      // JOIN PACKET
-      ws.send(
-        JSON.stringify({
-          type: "join",
-          username,
-        })
-      );
+    rl.on("line", (input) => {
+      // COMMANDS
+      if (input.startsWith("/")) {
+        const parts = input.split(" ");
 
-      console.log(
-        chalk.green(
-          `Connected as ${username}`
-        )
-      );
+        const command = parts[0].slice(1);
 
-      // INPUT LISTENER
-      rl.on("line", (input) => {
+        // DM
+        if (command === "dm") {
+          const target = parts[1];
 
-        // COMMANDS
-        if (
-          input.startsWith("/")
-        ) {
+          const content = parts.slice(2).join(" ");
 
-          const parts =
-            input.split(" ");
+          const packet = {
+            type: "command",
+            command: "dm",
+            target,
+            content,
+          };
 
-          const command =
-            parts[0].slice(1);
+          ws.send(JSON.stringify(packet));
 
-          // DM COMMAND
-          if (
-            command === "dm"
-          ) {
-
-            const target =
-              parts[1];
-
-            const content =
-              parts
-                .slice(2)
-                .join(" ");
-
-            const packet = {
-              type: "command",
-              command: "dm",
-              target,
-              content,
-            };
-
-            ws.send(
-              JSON.stringify(packet)
-            );
-
-            return;
-          }
-
-          // HELP COMMAND
-          if (
-            command === "help"
-          ) {
-
-            console.log(`
-Available Commands:
-
-/dm <user> <message>
-/help
-            `);
-
-            return;
-          }
-
+          return;
         }
 
-        // NORMAL MESSAGE
-        const packet =
-          createMessagePacket(
-            input
+        // JOIN ROOM
+        if (command === "join") {
+          const target = parts[1];
+
+          const packet = {
+            type: "command",
+            command: "join",
+            target,
+          };
+
+          ws.send(JSON.stringify(packet));
+
+          return;
+        }
+
+        // ONLINE USERS
+        if (command === "online") {
+          const packet = {
+            type: "command",
+            command: "online",
+          };
+
+          ws.send(JSON.stringify(packet));
+
+          return;
+        }
+
+        // HELP
+        if (command === "help") {
+          console.log(
+            `\nAvailable Commands:\n\n/dm <user> <message>\n/join <room>\n/online\n/help\n`,
           );
 
-        ws.send(
-          JSON.stringify(packet)
-        );
+          return;
+        }
+      }
 
-      });
+      // NORMAL MESSAGE
+      const packet = createMessagePacket(input);
 
-    }
-  );
-
+      ws.send(JSON.stringify(packet));
+    });
+  });
 });
 
 // RECEIVE PACKETS
 ws.on("message", (message) => {
-
-  const packet = JSON.parse(
-    message.toString()
-  );
+  const packet = JSON.parse(message.toString());
 
   // NORMAL MESSAGE
-  if (
-    packet.type === "message"
-  ) {
+  if (packet.type === "message") {
+    const time = new Date(packet.timestamp).toLocaleTimeString();
 
     console.log(
       chalk.cyan(
-        `${packet.username}: ${packet.content}`
-      )
+        `[${packet.room}] ${packet.username}: ${packet.content} (${time})`,
+      ),
     );
-
   }
 
-  // SYSTEM MESSAGE
-  if (
-    packet.type === "system"
-  ) {
-
-    console.log(
-      chalk.yellow(
-        `[SYSTEM] ${packet.content}`
-      )
-    );
-
+  // SYSTEM
+  if (packet.type === "system") {
+    console.log(chalk.yellow(`[SYSTEM] ${packet.content}`));
   }
 
-  // DM MESSAGE
-  if (
-    packet.type === "dm"
-  ) {
+  // DM
+  if (packet.type === "dm") {
+    const time = new Date(packet.timestamp).toLocaleTimeString();
 
     console.log(
-      chalk.magenta(
-        `[DM] ${packet.from}: ${packet.content}`
-      )
+      chalk.magenta(`[DM] ${packet.from}: ${packet.content} (${time})`),
     );
-
   }
 
   // ERROR
-  if (
-    packet.type === "error"
-  ) {
-
-    console.log(
-      chalk.red(
-        `[ERROR] ${packet.content}`
-      )
-    );
-
+  if (packet.type === "error") {
+    console.log(chalk.red(`[ERROR] ${packet.content}`));
   }
-
 });
 
 ws.on("error", (err) => {
-
-  console.log(
-    chalk.red(err.message)
-  );
-
+  console.log(chalk.red(err.message));
 });
