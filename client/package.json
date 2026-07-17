@@ -1,0 +1,29 @@
+{
+  "name": "wire-client",
+  "version": "0.3.0",
+  "description": "wire client interface",
+  "keywords": [
+    "client",
+    "wire",
+    "wire-client"
+  ],
+  "license": "ISC",
+  "author": "lokeshkr",
+  "type": "module",
+  "main": "client.js",
+  "scripts": {
+<<<<<<< HEAD
+    "start": "node client.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "blessed": "^0.1.81",
+=======
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+>>>>>>> d0911ed8ff905d31466ecdbe262c65348d4af6ab
+    "chalk": "^5.6.2",
+    "ws": "^8.20.1"
+  }
+}

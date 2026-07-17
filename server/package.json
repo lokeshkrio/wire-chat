@@ -1,0 +1,31 @@
+{
+  "name": "wire-server",
+  "version": "0.3.0",
+  "description": "wire server based on websocket ",
+  "keywords": [
+    "server",
+    "wire",
+    "wire-server",
+    "websocket"
+  ],
+  "license": "ISC",
+  "author": "lokeshkr",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+<<<<<<< HEAD
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "argon2": "^0.44.0",
+=======
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+>>>>>>> d0911ed8ff905d31466ecdbe262c65348d4af6ab
+    "uid": "^2.0.2",
+    "ws": "^8.20.1"
+  }
+}
