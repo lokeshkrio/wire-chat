@@ -7,6 +7,15 @@ import {
   broadcastToRoom,
 } from "../services/broadcast.js";
 
+/**
+ * Handles incoming command packets from a client.
+ * Routes commands like /dm, /join, /create-room, /rooms, /history, and /online.
+ * 
+ * @param {WebSocket} ws - The client's websocket connection
+ * @param {Object} packet - The parsed command packet
+ * @param {Map} users - Global map of online users
+ * @param {Map} rooms - Global map of active rooms
+ */
 export function handleCommand(
   ws,
   packet,
@@ -14,11 +23,12 @@ export function handleCommand(
   rooms
 ) {
 
-  // DM
+  // DM: Direct messaging between two users
   if (
     packet.command === "dm"
   ) {
 
+    // Retrieve the target user's socket connection
     const targetSocket =
       users.get(packet.target);
 
@@ -49,7 +59,7 @@ export function handleCommand(
     return;
   }
 
-  // JOIN ROOM
+  // JOIN ROOM: Moves a user from one room to another
   if (
     packet.command === "join"
   ) {
@@ -86,18 +96,19 @@ export function handleCommand(
     return;
   }
 
-  // ONLINE USERS
+  // ONLINE USERS: List all globally connected and authenticated users
   if (packet.command === "online") {
     const onlineUsers = [...users.keys()];
     ws.send(JSON.stringify({ type: "system", content: `Online: ${onlineUsers.join(", ")}` }));
     return;
   }
 
-  // CREATE ROOM
+  // CREATE ROOM: Creates a new room or updates its description
   if (packet.command === "create-room") {
     const { name, description } = packet;
-    if (!name) return;
+    if (!name) return; // Ignore if no room name is provided
     
+    // Update description if room exists, otherwise initialize new room
     if (rooms.has(name)) {
       rooms.get(name).description = description || "No description provided.";
     } else {
@@ -108,7 +119,7 @@ export function handleCommand(
     return;
   }
 
-  // LIST ROOMS
+  // LIST ROOMS: Sends the client a list of all active rooms and their metadata
   if (packet.command === "rooms") {
     const roomList = [];
     for (const [name, data] of rooms.entries()) {
@@ -118,9 +129,10 @@ export function handleCommand(
     return;
   }
 
-  // HISTORY
+  // HISTORY: Fetches past messages from the SQLite database for the current room
   if (packet.command === "history") {
     if (!ws.room) {
+      // Must be in a room to view history
       ws.send(
         JSON.stringify({
           type: "error",

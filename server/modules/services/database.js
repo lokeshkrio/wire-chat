@@ -8,11 +8,12 @@ const __dirname = path.dirname(__filename);
 
 const dbPath = path.resolve(__dirname, "../../../chat.db");
 
-// Using Node 22+ built-in sqlite module
+// Using Node 22+ built-in sqlite module for synchronous DB operations
 const db = new DatabaseSync(dbPath);
 
 console.log("Connected to the SQLite database using node:sqlite.");
 
+// Initialize database schema
 db.exec(`
   CREATE TABLE IF NOT EXISTS messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,6 +28,12 @@ db.exec(`
   );
 `);
 
+/**
+ * Registers a new user with a hashed password.
+ * @param {string} username 
+ * @param {string} password 
+ * @returns {Promise<boolean>} True if successful, false if username exists
+ */
 export async function registerUser(username, password) {
   try {
     const hash = await argon2.hash(password);
@@ -41,6 +48,12 @@ export async function registerUser(username, password) {
   }
 }
 
+/**
+ * Verifies a user's credentials against the stored hash.
+ * @param {string} username 
+ * @param {string} password 
+ * @returns {Promise<boolean>} True if credentials are valid, false otherwise
+ */
 export async function verifyUser(username, password) {
   try {
     const stmt = db.prepare("SELECT password FROM users WHERE username = ?");
@@ -53,6 +66,13 @@ export async function verifyUser(username, password) {
   }
 }
 
+/**
+ * Persists a new chat message to the database.
+ * @param {string} room 
+ * @param {string} sender 
+ * @param {string} content 
+ * @param {number} timestamp 
+ */
 export function insertMessage(room, sender, content, timestamp) {
   try {
     const stmt = db.prepare(
@@ -64,6 +84,12 @@ export function insertMessage(room, sender, content, timestamp) {
   }
 }
 
+/**
+ * Retrieves the most recent messages for a given room.
+ * @param {string} room 
+ * @param {number} limit Maximum number of messages to fetch (default: 50)
+ * @returns {Promise<Array>} Array of message objects in chronological order
+ */
 export function getHistory(room, limit = 50) {
   return new Promise((resolve, reject) => {
     try {

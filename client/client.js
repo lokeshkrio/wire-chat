@@ -3,17 +3,21 @@ import chalk from "chalk";
 import blessed from "blessed";
 import { createMessagePacket } from "../shared/protocol.js";
 
+// Connect to the local WireChat WebSocket server
 const ws = new WebSocket("ws://127.0.0.1:5051");
 
+// Initialize blessed screen for Terminal UI
 const screen = blessed.screen({
   smartCSR: true,
   title: "Wire Chat"
 });
 
+// Handle global quit commands
 screen.key(['escape', 'C-c'], function(ch, key) {
   return process.exit(0);
 });
 
+// Track connection and authentication state
 let isConnected = false;
 ws.on('open', () => {
   isConnected = true;
@@ -22,19 +26,21 @@ ws.on('open', () => {
 let username = "";
 let currentRoom = "";
 
+// Main chat display box
 const chatBox = blessed.log({
   parent: screen,
   top: 0,
   left: 0,
   width: '100%',
-  height: '100%-3',
+  height: '100%-3', // Leave room for input box at bottom
   border: { type: 'line' },
   label: ' User: (Not Logged In) | Room: (None) ',
-  tags: true,
+  tags: true, // Enable color tags like {cyan-fg}
   scrollback: 1000,
   scrollbar: { ch: ' ', track: { bg: 'cyan' }, style: { inverse: true } }
 });
 
+// User input box at the bottom of the screen
 const inputBox = blessed.textbox({
   parent: screen,
   bottom: 0,
@@ -54,12 +60,13 @@ chatBox.log(`{gray-fg}/register <username> <password>{/gray-fg}`);
 chatBox.log(`{gray-fg}/login <username> <password>{/gray-fg}\n`);
 screen.render();
 
+// Event listener for user pressing 'Enter' in the input box
 inputBox.on('submit', (input) => {
   inputBox.clearValue();
-  inputBox.focus();
+  inputBox.focus(); // Keep focus after submission
   screen.render();
 
-  if (!input.trim()) return;
+  if (!input.trim()) return; // Ignore empty messages
 
   if (!isConnected) {
     chatBox.log(`{yellow-fg}[SYSTEM] Connecting to server... please wait.{/yellow-fg}`);
@@ -68,6 +75,7 @@ inputBox.on('submit', (input) => {
 
   const parts = input.trim().split(" ");
   
+  // Check if the input is a command (starts with '/')
   if (input.startsWith("/")) {
     const command = parts[0].slice(1);
 
@@ -156,6 +164,7 @@ inputBox.on('submit', (input) => {
 
 inputBox.on('cancel', () => inputBox.focus());
 
+// Listen for incoming messages from the server
 ws.on("message", (message) => {
   const packet = JSON.parse(message.toString());
 

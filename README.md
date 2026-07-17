@@ -1,68 +1,33 @@
-# Wire Chat
+# WireChat - A Real-Time Terminal Messaging Platform
 
-A lightweight real-time terminal chat application built with **Node.js** and **WebSockets**.
-Wire Chat provides room-based messaging, private messages, user management, and packet validation through a simple custom protocol.
-
----
-
-## Features
-
-* Real-time communication using WebSockets
-* Multiple chat rooms
-* Private messaging (DM)
-* Username uniqueness enforcement
-* Packet validation
-* System notifications
-* Online user listing
-* Message logging
-* Modular architecture
+WireChat is a lightweight, real-time terminal chat application built with **Node.js** and **WebSockets**. Featuring a fully interactive Terminal User Interface (TUI), WireChat provides room-based messaging, private messages, user authentication, and persistent chat history backed by SQLite.
 
 ---
 
-## Project Structure
+## ✨ Features
 
-```
-wire-chat/
-│
-├── client/
-│   ├── client.js
-│   └── modules/
-│       └── cmdAction.js
-│
-├── server/
-│   ├── server.js
-│   └── modules/
-│       ├── handlers/
-│       │   ├── handleJoin.js
-│       │   ├── handleMessage.js
-│       │   └── handleCmd.js
-│       │
-│       ├── services/
-│       │   └── broadcast.js
-│       │
-│       └── logger.js
-│
-├── shared/
-│   ├── protocol.js
-│   ├── validator.js
-│   └── commands.js
-│
-├── LICENSE
-└── README.md
-```
+* **Terminal UI (TUI):** A rich, interactive terminal interface built with `blessed` and `chalk`.
+* **Real-time Communication:** Low-latency bi-directional messaging using WebSockets (`ws`).
+* **Authentication:** Secure user registration and login with password hashing via `argon2`.
+* **Room-based Chat:** Create new rooms, list available rooms, and join different channels.
+* **Private Messaging (DM):** Send direct messages to specific users.
+* **Persistent History:** Messages are logged and stored in an SQLite database, allowing you to fetch past chat history.
+* **System Notifications:** Real-time alerts when users join/leave rooms or when errors occur.
+* **Online Status:** Check who is currently connected to the server.
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
-```
+```text
         Client A
            │
            │
       WebSocket
            │
  ┌──────────────────┐
- │    Wire Server   │
+ │   Wire Server    │
+ │  (SQLite & WS)   │
  └──────────────────┘
       │         │
       │         │
@@ -71,45 +36,41 @@ wire-chat/
 
 The server maintains:
 
-* Connected users
-* Active rooms
-* Message broadcasting
-* Command handling
-* Packet validation
+* Connected users and their authentication state
+* Active rooms and their participants
+* Message broadcasting and packet validation
+* Chat history stored in a local SQLite database
 
 ---
 
-## Installation
+## 🚀 Installation
 
-### Clone the repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/lokeshkrio/wire-chat.git
-
 cd wire-chat
 ```
 
----
+### 2. Install dependencies
 
-### Install dependencies
-
-#### Server
+**Server setup:**
 
 ```bash
 cd server
 npm install
 ```
 
-#### Client
+**Client setup:**
 
 ```bash
-cd ../client
+cd client
 npm install
 ```
 
 ---
 
-## Running
+## 💻 Running the Application
 
 ### Start the server
 
@@ -118,205 +79,95 @@ cd server
 node server.js
 ```
 
-Output:
-
-```text
-Wire server running
-```
-
----
+*The server runs on port `5051` by default and initializes the SQLite database.*
 
 ### Start a client
 
-Open another terminal:
+Open a separate terminal window:
 
 ```bash
 cd client
 node client.js
 ```
 
-Enter a username when prompted:
-
-```text
-Enter username: Lokesh
-Connected as Lokesh
-```
-
-Run multiple clients in separate terminals to chat.
+Upon launching, the interactive terminal UI will appear. You must register and login before chatting.
 
 ---
 
-## Supported Commands
+## 📝 Commands
 
-### Direct Message
+Once connected, you can use the following commands within the client's input box:
 
-```text
-/dm <username> <message>
-```
+### Authentication
 
-Example:
+* `/register <username> <password>` - Register a new account.
+* `/login <username> <password>` - Login to an existing account.
 
-```text
-/dm Alice Hello!
-```
+### Rooms & Chat
 
----
+* `/join <room>` - Join a specific room (defaults to `general` on login).
+* `/create-room <name> [description]` - Create a new room with an optional description.
+* `/rooms` - List all available rooms and their active user count.
+* `/history [limit]` - Fetch the latest messages from the current room (default limit: 50).
 
-### Show Help
+### Users
 
-```text
-/help
-```
-
-Displays available commands.
+* `/dm <username> <message>` - Send a private direct message.
+* `/online` - List all currently connected users.
+* `/help` - Show the available commands.
 
 ---
 
-### Online Users
+## 🔒 Protocol Structure
 
-```text
-/online
-```
-
-Returns the list of connected users.
-
----
-
-### Join Room
-
-Packet command:
-
-```javascript
-{
-    type: "command",
-    command: "join",
-    target: "sports"
-}
-```
-
-Moves the user to another room.
-
----
-
-## Protocol
-
-### Join Packet
-
-```javascript
-{
-    type: "join",
-    username: "Lokesh"
-}
-```
-
----
+WireChat uses a simple JSON-based packet protocol over WebSockets. Here are some examples:
 
 ### Message Packet
 
-```javascript
+```json
 {
-    type: "message",
-    content: "Hello everyone"
+    "type": "message",
+    "content": "Hello everyone"
+}
+```
+
+### Command Packet (e.g. DM)
+
+```json
+{
+    "type": "command",
+    "command": "dm",
+    "target": "Alice",
+    "content": "Hi there!"
 }
 ```
 
 ---
 
-### Command Packet
+## 🛠️ Technologies Used
 
-```javascript
-{
-    type: "command",
-    command: "dm",
-    target: "Alice",
-    content: "Hi!"
-}
-```
+**Server:**
 
----
+* `Node.js`
+* `ws` (WebSockets)
+* `node:sqlite` (Database)
+* `argon2` (Password Hashing)
 
-### System Packet
+**Client:**
 
-```javascript
-{
-    type: "system",
-    content: "User joined general"
-}
-```
+* `blessed` (Terminal UI)
+* `chalk` (Terminal Styling)
+* `ws` (WebSockets)
 
 ---
 
-### DM Packet
+## 👨‍💻 Author
 
-```javascript
-{
-    type: "dm",
-    from: "Lokesh",
-    content: "Hello",
-    timestamp: 1710000000
-}
-```
+**Lokesh Kumar** - [@lokeshkrio](https://github.com/lokeshkrio)
+*Computer Science Student interested in Systems Programming, Backend Engineering, Distributed Systems, and Quantitative Finance.*
 
 ---
 
-## Validation Rules
-
-### Username
-
-* Minimum length: 2 characters
-* Maximum length: 20 characters
-* Must be unique
-
-### Message
-
-* Cannot be empty
-* Maximum length: 500 characters
-
-### Commands
-
-* Must contain a valid command string
-
----
-
-## Technologies Used
-
-* Node.js
-* WebSocket (`ws`)
-* Chalk
-* Readline
-
----
-
-## Future Improvements
-
-* Authentication
-* Persistent chat history
-* Password-protected rooms
-* End-to-end encryption
-* File transfer
-* Message reactions
-* Typing indicators
-* User presence status
-* Rate limiting
-* Web frontend
-
----
-
-## License
+## 📄 License
 
 This project is licensed under the MIT License.
-
----
-
-## Author
-
-**Lokesh Kumar**[github.com/lokeshkrio] @ 2026
-
-Computer Science Student interested in
-
-* Systems Programming
-* Backend Engineering
-* Distributed Systems
-* Quantitative Finance
-
----
