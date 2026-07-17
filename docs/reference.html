@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WireChat — Protocol & Configuration Reference</title>
+  <meta name="description" content="Technical specification for WireChat packet structures, database schemas, and developer options." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="container nav-inner">
+    <span class="nav-logo">WireChat</span>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="examples.html">Examples</a></li>
+        <li><a href="reference.html" class="active">Reference</a></li>
+      </ul>
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+        <span class="theme-toggle-track">
+          <span class="theme-toggle-knob"></span>
+        </span>
+      </button>
+      <a href="https://github.com/lokeshkrio/wire-chat" class="nav-cta">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Header -->
+<header class="hero">
+  <div class="container">
+    <div class="badge">Technical Reference & Protocols</div>
+    <h1>Specifications & schemas</h1>
+    <p>
+      Formal definitions of WireChat's JSON payload protocol, SQLite database tables, and customizable configuration properties.
+    </p>
+  </div>
+</header>
+
+<!-- Main content container -->
+<div class="container" style="margin-bottom: 80px;">
+
+  <!-- Section 1: Protocol Schema -->
+  <section id="protocol-spec" style="border-bottom: 1px solid var(--border); padding-bottom: 64px; margin-bottom: 48px;">
+    <h2 class="section-title">WebSocket JSON Protocol</h2>
+    <p class="section-subtitle">A detailed mapping of every packet type sent back and forth between client and server.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">AUTH</div>
+        <div class="step-content">
+          <h3>Authentication Packets</h3>
+          <p style="margin-bottom: 16px; color: var(--text-muted);">
+            Clients must authenticate before sending chat messages or performing commands.
+          </p>
+
+          <div class="packets-grid" style="margin-bottom: 24px;">
+            <div class="packet-card">
+              <div class="packet-label">Client Login Request</div>
+              <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"login"</span>,
+  <span class="key">"username"</span>: <span class="str">"alice"</span>,
+  <span class="key">"password"</span>: <span class="str">"secret"</span>
+}</code></pre>
+            </div>
+            <div class="packet-card">
+              <div class="packet-label">Server Auth Success Response</div>
+              <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"auth_success"</span>,
+  <span class="key">"username"</span>: <span class="str">"alice"</span>
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">CHAT</div>
+        <div class="step-content">
+          <h3>Messaging Packets</h3>
+          <p style="margin-bottom: 16px; color: var(--text-muted);">
+            Used for client messaging inside channels and private Direct Messages (DMs).
+          </p>
+
+          <div class="packets-grid">
+            <div class="packet-card">
+              <div class="packet-label">Client Chat Message</div>
+              <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"message"</span>,
+  <span class="key">"content"</span>: <span class="str">"Hello tech room!"</span>
+}</code></pre>
+            </div>
+            <div class="packet-card">
+              <div class="packet-label">Server Chat Broadcast</div>
+              <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"message"</span>,
+  <span class="key">"username"</span>: <span class="str">"alice"</span>,
+  <span class="key">"room"</span>: <span class="str">"tech"</span>,
+  <span class="key">"content"</span>: <span class="str">"Hello tech room!"</span>,
+  <span class="key">"timestamp"</span>: 1715901243100
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">DATA</div>
+        <div class="step-content">
+          <h3>Metadata & Query Packets</h3>
+          <p style="margin-bottom: 16px; color: var(--text-muted);">
+            Emitted in response to command queries like `/rooms` or `/history`.
+          </p>
+
+          <div class="packets-grid">
+            <div class="packet-card">
+              <div class="packet-label">Server Room List Response</div>
+              <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"rooms_list"</span>,
+  <span class="key">"rooms"</span>: [
+    {
+      <span class="key">"name"</span>: <span class="str">"general"</span>,
+      <span class="key">"description"</span>: <span class="str">"General"</span>,
+      <span class="key">"users"</span>: 4
+    }
+  ]
+}</code></pre>
+            </div>
+            <div class="packet-card">
+              <div class="packet-label">Server Chat History Response</div>
+              <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"history"</span>,
+  <span class="key">"messages"</span>: [
+    {
+      <span class="key">"username"</span>: <span class="str">"alice"</span>,
+      <span class="key">"room"</span>: <span class="str">"tech"</span>,
+      <span class="key">"content"</span>: <span class="str">"Hey there"</span>,
+      <span class="key">"timestamp"</span>: 1715901243000
+    }
+  ]
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Database Schema -->
+  <section id="database-schema" style="border-bottom: 1px solid var(--border); padding-bottom: 64px; margin-bottom: 48px;">
+    <h2 class="section-title">SQLite Database Schema</h2>
+    <p class="section-subtitle">Structure of the database tables created automatically in <code>chat.db</code>.</p>
+
+    <div class="project-structure" style="background: var(--bg-card); border-color: var(--border-dark);">
+      <h3 style="color: var(--text); font-family: var(--font-sans); font-size: 0.95rem; font-weight: 700; margin-bottom: 12px;">SQL Table Definitions</h3>
+      <pre style="color: var(--text);"><code style="color: var(--text);"><span class="comment">-- Table: users (Stores user account credentials)</span>
+<span class="keyword" style="color: var(--accent); font-weight: 600;">CREATE TABLE</span> <span class="keyword" style="color: var(--accent); font-weight: 600;">IF NOT EXISTS</span> users (
+  username <span class="type" style="color: #0d9488;">TEXT</span> <span class="keyword" style="color: var(--accent); font-weight: 600;">PRIMARY KEY</span>,
+  password <span class="type" style="color: #0d9488;">TEXT</span> <span class="comment">-- Argon2id secure hash</span>
+);
+
+<span class="comment">-- Table: messages (Stores chat room histories)</span>
+<span class="keyword" style="color: var(--accent); font-weight: 600;">CREATE TABLE</span> <span class="keyword" style="color: var(--accent); font-weight: 600;">IF NOT EXISTS</span> messages (
+  id <span class="type" style="color: #0d9488;">INTEGER</span> <span class="keyword" style="color: var(--accent); font-weight: 600;">PRIMARY KEY</span> <span class="keyword" style="color: var(--accent); font-weight: 600;">AUTOINCREMENT</span>,
+  room <span class="type" style="color: #0d9488;">TEXT</span>,
+  sender <span class="type" style="color: #0d9488;">TEXT</span>,
+  content <span class="type" style="color: #0d9488;">TEXT</span>,
+  timestamp <span class="type" style="color: #0d9488;">INTEGER</span> <span class="comment">-- Unix Epoch milliseconds</span>
+);</code></pre>
+    </div>
+  </section>
+
+  <!-- Section 3: Server Configurations -->
+  <section id="server-configs" style="padding-bottom: 40px;">
+    <h2 class="section-title">Configuration Guide</h2>
+    <p class="section-subtitle">Modify parameters to adjust network settings, database locations, or styling defaults.</p>
+
+    <div class="cmd-table-wrap">
+      <table class="cmd-table">
+        <thead>
+          <tr>
+            <th>Setting / Variable</th>
+            <th>Default Value</th>
+            <th>Description / Path</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>port</code></td>
+            <td><code>5051</code></td>
+            <td>Defined inside <code>server.js</code> when initiating the <code>WebSocketServer</code>.</td>
+          </tr>
+          <tr>
+            <td><code>DatabaseSync Path</code></td>
+            <td><code>"../../../chat.db"</code></td>
+            <td>Resolved inside <code>database.js</code> relative to its directory in <code>server/modules/services/</code>.</td>
+          </tr>
+          <tr>
+            <td><code>Argon2 Hashing Type</code></td>
+            <td><code>Argon2id</code></td>
+            <td>Controlled via defaults from the `argon2` module in <code>database.js</code>.</td>
+          </tr>
+          <tr>
+            <td><code>TUI Refresh Mode</code></td>
+            <td><code>smartCSR: true</code></td>
+            <td>Specified inside <code>client.js</code> when building the screen to optimize rendering.</td>
+          </tr>
+          <tr>
+            <td><code>History Limit</code></td>
+            <td><code>50</code></td>
+            <td>The maximum messages fetched when <code>/history</code> is executed without args.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="nav-logo">WireChat</span>
+      <p>A Real-Time Terminal Messaging Platform</p>
+    </div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="https://github.com/lokeshkrio/wire-chat">GitHub</a>
+      <a href="https://www.linkedin.com/in/lokeshkr-in/">LinkedIn</a>
+      <a href="https://github.com/lokeshkrio/wire-chat/blob/main/LICENSE">MIT License</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Dark/Light theme toggle
+  const toggle = document.getElementById('theme-toggle');
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+
+  toggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  });
+
+  // Reveal elements on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) e.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.step, .packet-card').forEach(el => {
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>

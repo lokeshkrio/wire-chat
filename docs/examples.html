@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WireChat — Interactive Examples & Telemetry</title>
+  <meta name="description" content="Explore interactive examples, CLI states, and JSON packet structures used in WireChat." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="container nav-inner">
+    <span class="nav-logo">WireChat</span>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="examples.html" class="active">Examples</a></li>
+        <li><a href="reference.html">Reference</a></li>
+      </ul>
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+        <span class="theme-toggle-track">
+          <span class="theme-toggle-knob"></span>
+        </span>
+      </button>
+      <a href="https://github.com/lokeshkrio/wire-chat" class="nav-cta">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Header -->
+<header class="hero">
+  <div class="container">
+    <div class="badge">Interactive Walkthroughs & Packet Telemetry</div>
+    <h1>WireChat in action</h1>
+    <p>
+      Explore step-by-step messaging flows, WebSocket packet payloads, CLI outputs, and SQLite database schemas.
+    </p>
+  </div>
+</header>
+
+<!-- Examples Content -->
+<div class="container" style="margin-bottom: 80px;">
+  
+  <!-- Example 1: User Authentication -->
+  <section id="example-auth" style="border-bottom: 1px solid var(--border); padding-bottom: 64px; margin-bottom: 48px;">
+    <h2 class="section-title">1. User Authentication</h2>
+    <p class="section-subtitle">How a new user registers, hashes passwords via <code>argon2</code>, and logs in securely.</p>
+    
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Registering a New User</h3>
+          <p style="margin-bottom: 12px; color: var(--text-muted);">
+            The user issues the registration command from the input box. The client validates it and pushes a registration packet.
+          </p>
+          <pre><code><span class="comment">// Inside the TUI Client input field</span>
+/register alice supersecurepassword</code></pre>
+          
+          <div class="terminal-mock">
+            <div class="terminal-header">
+              <span class="terminal-dot red"></span>
+              <span class="terminal-dot yellow"></span>
+              <span class="terminal-dot green"></span>
+              <span class="terminal-title">TUI Client - Log View</span>
+            </div>
+            <div class="terminal-body"><span class="cyan-text">Welcome to Wire Chat!</span>
+<span class="gray-text">Please authenticate first:</span>
+<span class="gray-text">/register &lt;username&gt; &lt;password&gt;</span>
+<span class="gray-text">/login &lt;username&gt; &lt;password&gt;</span>
+
+<span class="green-text">/register alice supersecurepassword</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Network Packet Payload & Server Hashing</h3>
+          <p style="margin-bottom: 12px; color: var(--text-muted);">
+            The server receives a <code>register</code> JSON packet, generates a secure <code>argon2</code> hash, and saves it in the SQLite database.
+          </p>
+          
+          <div class="packets-grid">
+            <div class="packet-card">
+              <div class="packet-label">Client → Server Packet</div>
+              <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"register"</span>,
+  <span class="key">"username"</span>: <span class="str">"alice"</span>,
+  <span class="key">"password"</span>: <span class="str">"supersecurepassword"</span>
+}</code></pre>
+            </div>
+            <div class="packet-card">
+              <div class="packet-label">Database Record (SQLite)</div>
+              <pre><code>SELECT * FROM users;
+┌──────────┬──────────────────────────────┐
+│ username │ password (Argon2 Hash)       │
+├──────────┼──────────────────────────────┤
+│ alice    │ $argon2id$v=19$m=65536,t=3...│
+└──────────┴──────────────────────────────┘</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Logging In & Session Bind</h3>
+          <p style="margin-bottom: 12px; color: var(--text-muted);">
+            Once registered, the user logs in. The server verifies the password, maps the user to the websocket connection, and auto-joins the user to the <code>general</code> chat room.
+          </p>
+          
+          <div class="terminal-mock">
+            <div class="terminal-header">
+              <span class="terminal-dot red"></span>
+              <span class="terminal-dot yellow"></span>
+              <span class="terminal-dot green"></span>
+              <span class="terminal-title">TUI Client - Authenticated State</span>
+            </div>
+            <div class="terminal-body"><span class="green-text">Successfully logged in as alice!</span>
+<span class="yellow-text">[SYSTEM] alice joined general</span>
+
+<span class="white-text">─────────────────────────────────────────────────────────────────</span>
+<span class="cyan-text"> User: alice | Room: general </span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Example 2: Room Creation & Chatting -->
+  <section id="example-rooms" style="border-bottom: 1px solid var(--border); padding-bottom: 64px; margin-bottom: 48px;">
+    <h2 class="section-title">2. Room Creation & Broadcasting</h2>
+    <p class="section-subtitle">How rooms are created dynamically and how messages are broadcast in real time.</p>
+    
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Creating a Custom Room</h3>
+          <p style="margin-bottom: 12px; color: var(--text-muted);">
+            A user can spin up a custom room at runtime with an optional description using <code>/create-room</code>.
+          </p>
+          <pre><code>/create-room tech "Technical discussions and logs"</code></pre>
+          
+          <div class="packets-grid">
+            <div class="packet-card">
+              <div class="packet-label">Client → Server Packet</div>
+              <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"command"</span>,
+  <span class="key">"command"</span>: <span class="str">"create-room"</span>,
+  <span class="key">"name"</span>: <span class="str">"tech"</span>,
+  <span class="key">"description"</span>: <span class="str">"Technical discussions"</span>
+}</code></pre>
+            </div>
+            <div class="packet-card">
+              <div class="packet-label">Server Response</div>
+              <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"system"</span>,
+  <span class="key">"content"</span>: <span class="str">"Room 'tech' created/updated."</span>
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Joining and Switching Channels</h3>
+          <p style="margin-bottom: 12px; color: var(--text-muted);">
+            Switching rooms leaves the previous room, joins the new one, and notifies other room members in real time.
+          </p>
+          <pre><code>/join tech</code></pre>
+          
+          <div class="terminal-mock">
+            <div class="terminal-header">
+              <span class="terminal-dot red"></span>
+              <span class="terminal-dot yellow"></span>
+              <span class="terminal-dot green"></span>
+              <span class="terminal-title">Server Console Log</span>
+            </div>
+            <div class="terminal-body"><span class="green-text">Wire server running</span>
+Connected to the SQLite database using node:sqlite.
+Client connected
+<span class="cyan-text">[general] Broadcast system event: alice left general</span>
+<span class="cyan-text">[tech] Broadcast system event: alice joined tech</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Example 3: Direct Messaging (DMs) -->
+  <section id="example-dms" style="border-bottom: 1px solid var(--border); padding-bottom: 64px; margin-bottom: 48px;">
+    <h2 class="section-title">3. Private Direct Messaging</h2>
+    <p class="section-subtitle">Sending peer-to-peer messages privately over the network.</p>
+    
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Initiating a Direct Message</h3>
+          <p style="margin-bottom: 12px; color: var(--text-muted);">
+            A user types a DM using <code>/dm &lt;target&gt; &lt;msg&gt;</code>. The server finds the socket connected to the target and routes the message exclusively to them.
+          </p>
+          <pre><code>/dm bob Hey bob, did you check the SQLite logs?</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Packet Routing</h3>
+          <p style="margin-bottom: 12px; color: var(--text-muted);">
+            The server intercept matches the target "bob" against the active users list and emits a private `dm` packet.
+          </p>
+          
+          <div class="packets-grid">
+            <div class="packet-card">
+              <div class="packet-label">Client (Alice) → Server</div>
+              <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"command"</span>,
+  <span class="key">"command"</span>: <span class="str">"dm"</span>,
+  <span class="key">"target"</span>: <span class="str">"bob"</span>,
+  <span class="key">"content"</span>: <span class="str">"Hey bob, check logs."</span>
+}</code></pre>
+            </div>
+            <div class="packet-card">
+              <div class="packet-label">Server → Target (Bob)</div>
+              <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"dm"</span>,
+  <span class="key">"from"</span>: <span class="str">"alice"</span>,
+  <span class="key">"content"</span>: <span class="str">"Hey bob, check logs."</span>,
+  <span class="key">"timestamp"</span>: 1715901243100
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>TUI Presentation (Bob's Screen)</h3>
+          <p style="margin-bottom: 12px; color: var(--text-muted);">
+            Bob receives the DM, styled in magenta to clearly distinguish it from public room messages.
+          </p>
+          
+          <div class="terminal-mock">
+            <div class="terminal-header">
+              <span class="terminal-dot red"></span>
+              <span class="terminal-dot yellow"></span>
+              <span class="terminal-dot green"></span>
+              <span class="terminal-title">TUI Client - Bob's View</span>
+            </div>
+            <div class="terminal-body"><span class="cyan-text">[general] chalie: is anyone here? (12:04:12 PM)</span>
+<span class="magenta-text">[DM] alice: Hey bob, check logs. (12:05:01 PM)</span>
+
+<span class="white-text">─────────────────────────────────────────────────────────────────</span>
+<span class="cyan-text"> User: bob | Room: general </span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Example 4: Chat History Persistence -->
+  <section id="example-history" style="padding-bottom: 40px;">
+    <h2 class="section-title">4. Chat History Retrieval</h2>
+    <p class="section-subtitle">SQLite backed persistent logs showing chronologically sorted historical messages.</p>
+    
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Fetching Room History</h3>
+          <p style="margin-bottom: 12px; color: var(--text-muted);">
+            Users who join a room or need context can pull historical messages using `/history` with a custom limit.
+          </p>
+          <pre><code>/history 3</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>SQLite Query & WebSocket Delivery</h3>
+          <p style="margin-bottom: 12px; color: var(--text-muted);">
+            The server runs a SQL query on <code>chat.db</code>, formats the records, and replies with a history collection.
+          </p>
+          
+          <div class="packets-grid">
+            <div class="packet-card">
+              <div class="packet-label">SQLite Query Executed</div>
+              <pre><code>SELECT sender, content, timestamp 
+FROM messages 
+WHERE room = 'tech' 
+ORDER BY timestamp DESC 
+LIMIT 3;</code></pre>
+            </div>
+            <div class="packet-card">
+              <div class="packet-label">Server Response Payload</div>
+              <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"history"</span>,
+  <span class="key">"messages"</span>: [
+    {<span class="key">"username"</span>:<span class="str">"bob"</span>,<span class="key">"content"</span>:<span class="str">"test"</span>...},
+    {<span class="key">"username"</span>:<span class="str">"alice"</span>,<span class="key">"content"</span>:<span class="str">"hi"</span>...}
+  ]
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Chronological Log Rendering</h3>
+          <p style="margin-bottom: 12px; color: var(--text-muted);">
+            The TUI client reverses the fetched array so history prints in order (oldest to newest), flanked by gray boundary markers.
+          </p>
+          
+          <div class="terminal-mock">
+            <div class="terminal-header">
+              <span class="terminal-dot red"></span>
+              <span class="terminal-dot yellow"></span>
+              <span class="terminal-dot green"></span>
+              <span class="terminal-title">TUI Client - Chat Screen</span>
+            </div>
+            <div class="terminal-body"><span class="gray-text">--- Chat History ---</span>
+<span class="gray-text">[tech] alice: Hello technical channel! (11:58:32 AM)</span>
+<span class="gray-text">[tech] bob: Running some tests on the DB (11:59:12 AM)</span>
+<span class="gray-text">[tech] alice: Looks fast. (11:59:58 AM)</span>
+<span class="gray-text">--- End of History ---</span>
+
+<span class="white-text">─────────────────────────────────────────────────────────────────</span>
+<span class="cyan-text"> User: alice | Room: tech </span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="nav-logo">WireChat</span>
+      <p>A Real-Time Terminal Messaging Platform</p>
+    </div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="https://github.com/lokeshkrio/wire-chat">GitHub</a>
+      <a href="https://www.linkedin.com/in/lokeshkr-in/">LinkedIn</a>
+      <a href="https://github.com/lokeshkrio/wire-chat/blob/main/LICENSE">MIT License</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Dark/Light theme toggle
+  const toggle = document.getElementById('theme-toggle');
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+
+  toggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  });
+
+  // Reveal elements on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) e.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.step, .terminal-mock, .packet-card').forEach(el => {
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>

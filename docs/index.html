@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WireChat — A Real-Time Terminal Messaging Platform</title>
+  <meta name="description" content="WireChat is a lightweight, real-time terminal chat application built with Node.js and WebSockets. Featuring TUI, rooms, DMs, authentication, and persistent message history." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="container nav-inner">
+    <span class="nav-logo">WireChat</span>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="examples.html">Examples</a></li>
+        <li><a href="reference.html">Reference</a></li>
+      </ul>
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+        <span class="theme-toggle-track">
+          <span class="theme-toggle-knob"></span>
+        </span>
+      </button>
+      <a href="https://github.com/lokeshkrio/wire-chat" class="nav-cta">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<header class="hero">
+  <div class="container">
+    <div class="badge">Node.js · WebSockets · SQLite · MIT License</div>
+    <h1>Real-time messaging<br/>built for the terminal</h1>
+    <p>
+      A lightweight, modular terminal chat platform powered by WebSockets, featuring a rich TUI, user authentication, room management, and persistent message history.
+    </p>
+    <p class="hero-tagline">
+      Rooms &bull; Direct Messages &bull; Authentication &bull; Chat History &bull; Live Presence
+    </p>
+    <div class="hero-actions">
+      <a href="#usage" class="btn btn-primary">Quick Start</a>
+      <a href="https://github.com/lokeshkrio/wire-chat" class="btn btn-secondary">View on GitHub</a>
+    </div>
+  </div>
+</header>
+
+<!-- Stats Row -->
+<div class="container">
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num">WS</div>
+      <div class="stat-label">Protocol</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">TUI</div>
+      <div class="stat-label">Interface</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">SQLite</div>
+      <div class="stat-label">Persistence</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">argon2</div>
+      <div class="stat-label">Auth Hashing</div>
+    </div>
+  </div>
+</div>
+
+<!-- Features Section -->
+<section id="features">
+  <div class="container">
+    <h2 class="section-title">Features</h2>
+    <p class="section-subtitle">A modular, handler-based WebSocket server with a rich blessed terminal interface on the client.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Real-Time Messaging</h3>
+        <p>Low-latency bi-directional communication over WebSockets. Messages are broadcast instantly to all users in a room.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔐</div>
+        <h3>Secure Authentication</h3>
+        <p>User registration and login backed by <code>argon2</code> password hashing. Sessions are tracked in-memory on the server.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏠</div>
+        <h3>Room Management</h3>
+        <p>Create, list, and join chat rooms. A <code>general</code> room is pre-created on startup. Rooms persist until the server restarts.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💬</div>
+        <h3>Direct Messages</h3>
+        <p>Send private messages directly to any online user with the <code>/dm</code> command, bypassing the current room channel.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🗄️</div>
+        <h3>Persistent History</h3>
+        <p>Messages are stored in a local SQLite database via the built-in <code>node:sqlite</code> module. Fetch history with <code>/history [n]</code>.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🖥️</div>
+        <h3>Terminal UI</h3>
+        <p>A rich, interactive client built with <code>blessed</code> — featuring a scrollable chat log, live status bar, and a focused input box.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture Section -->
+<section id="architecture">
+  <div class="container">
+    <h2 class="section-title">Architecture</h2>
+    <p class="section-subtitle">A clean, handler-based server with in-memory state and SQLite-backed persistence.</p>
+    <div class="arch-diagram">
+      <pre><code><span class="comment">                  ┌─────────────────┐</span>
+<span class="comment">  Client A (TUI)  │   Wire Server   │</span>
+<span class="comment">  ──────────────► │  WebSocket :5051│◄── Client B (TUI)</span>
+<span class="comment">                  │                 │</span>
+<span class="comment">                  │  ┌───────────┐  │</span>
+<span class="comment">                  │  │  Router   │  │</span>
+<span class="comment">                  │  └─────┬─────┘  │</span>
+<span class="comment">                  │ handleAuth      │</span>
+<span class="comment">                  │ handleMessage   │</span>
+<span class="comment">                  │ handleCmd       │</span>
+<span class="comment">                  │  ┌───────────┐  │</span>
+<span class="comment">                  │  │  SQLite   │  │</span>
+<span class="comment">                  │  │ chat.db   │  │</span>
+<span class="comment">                  │  └───────────┘  │</span>
+<span class="comment">                  └─────────────────┘</span></code></pre>
+    </div>
+
+    <div class="project-structure">
+      <h3>Project Structure</h3>
+      <pre><code><span class="dir">wire-chat/</span>
+<span class="dir">├── client/</span>
+<span class="file">│   ├── client.js</span>          <span class="comment"># TUI client (blessed + WebSocket)</span>
+<span class="dir">│   └── modules/</span>
+<span class="file">│       └── cmdAction.js</span>
+<span class="dir">├── server/</span>
+<span class="file">│   ├── server.js</span>          <span class="comment"># WebSocket server, routing</span>
+<span class="dir">│   └── modules/</span>
+<span class="dir">│       ├── handlers/</span>
+<span class="file">│       │   ├── handleAuth.js</span>     <span class="comment"># register / login</span>
+<span class="file">│       │   ├── handleMessage.js</span>  <span class="comment"># broadcast messages</span>
+<span class="file">│       │   └── handleCmd.js</span>      <span class="comment"># /join, /dm, /rooms ...</span>
+<span class="dir">│       └── services/</span>
+<span class="file">│           ├── broadcast.js</span>      <span class="comment"># room broadcasting</span>
+<span class="file">│           └── database.js</span>       <span class="comment"># SQLite operations</span>
+<span class="dir">└── shared/</span>
+<span class="file">    ├── protocol.js</span>        <span class="comment"># packet factory functions</span>
+<span class="file">    ├── validator.js</span>       <span class="comment"># packet schema validation</span>
+<span class="file">    └── commands.js</span>        <span class="comment"># command constants</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- Installation / Quick Start -->
+<section id="usage">
+  <div class="container">
+    <h2 class="section-title">Quick Start</h2>
+    <p class="section-subtitle">Get WireChat running locally in under a minute.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Clone the repository</h3>
+          <pre><code><span class="comment"># Clone from GitHub</span>
+git clone https://github.com/lokeshkrio/wire-chat.git
+cd wire-chat</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Install dependencies</h3>
+          <pre><code><span class="comment"># Install server packages</span>
+cd server &amp;&amp; npm install
+
+<span class="comment"># Install client packages</span>
+cd ../client &amp;&amp; npm install</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Start the server</h3>
+          <pre><code>cd server
+node server.js
+<span class="comment"># → Connected to the SQLite database.</span>
+<span class="comment"># → Wire server running</span></code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <h3>Launch a client</h3>
+          <pre><code><span class="comment"># In a new terminal window</span>
+cd client
+node client.js
+
+<span class="comment"># Then register and login:</span>
+/register alice mysecretpass
+/login alice mysecretpass</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Commands Section -->
+<section id="protocol">
+  <div class="container">
+    <h2 class="section-title">Commands</h2>
+    <p class="section-subtitle">All commands are entered in the client's input box, prefixed with <code>/</code>.</p>
+
+    <div class="cmd-table-wrap">
+      <table class="cmd-table">
+        <thead>
+          <tr>
+            <th>Command</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>/register &lt;user&gt; &lt;pass&gt;</code></td><td>Create a new account</td></tr>
+          <tr><td><code>/login &lt;user&gt; &lt;pass&gt;</code></td><td>Authenticate and join the server</td></tr>
+          <tr><td><code>/join &lt;room&gt;</code></td><td>Join or switch to a room</td></tr>
+          <tr><td><code>/create-room &lt;name&gt; [desc]</code></td><td>Create a new room with an optional description</td></tr>
+          <tr><td><code>/rooms</code></td><td>List all available rooms and their user count</td></tr>
+          <tr><td><code>/dm &lt;user&gt; &lt;message&gt;</code></td><td>Send a private direct message</td></tr>
+          <tr><td><code>/history [limit]</code></td><td>Fetch recent messages from the current room (default: 50)</td></tr>
+          <tr><td><code>/online</code></td><td>List all currently connected users</td></tr>
+          <tr><td><code>/help</code></td><td>Display the available command list</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 64px;">Packet Protocol</h2>
+    <p class="section-subtitle">WireChat uses a simple JSON packet protocol over WebSockets.</p>
+
+    <div class="packets-grid">
+      <div class="packet-card">
+        <div class="packet-label">Message</div>
+        <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"message"</span>,
+  <span class="key">"content"</span>: <span class="str">"Hello everyone"</span>
+}</code></pre>
+      </div>
+      <div class="packet-card">
+        <div class="packet-label">Direct Message</div>
+        <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"command"</span>,
+  <span class="key">"command"</span>: <span class="str">"dm"</span>,
+  <span class="key">"target"</span>: <span class="str">"Alice"</span>,
+  <span class="key">"content"</span>: <span class="str">"Hi!"</span>
+}</code></pre>
+      </div>
+      <div class="packet-card">
+        <div class="packet-label">Join Room</div>
+        <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"command"</span>,
+  <span class="key">"command"</span>: <span class="str">"join"</span>,
+  <span class="key">"target"</span>: <span class="str">"general"</span>
+}</code></pre>
+      </div>
+      <div class="packet-card">
+        <div class="packet-label">System Broadcast</div>
+        <pre><code>{
+  <span class="key">"type"</span>: <span class="str">"system"</span>,
+  <span class="key">"content"</span>: <span class="str">"Alice joined general"</span>
+}</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="nav-logo">WireChat</span>
+      <p>A Real-Time Terminal Messaging Platform</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/lokeshkrio/wire-chat">GitHub</a>
+      <a href="https://www.linkedin.com/in/lokeshkr-in/">LinkedIn</a>
+      <a href="https://github.com/lokeshkrio/wire-chat/blob/main/LICENSE">MIT License</a>
+      <a href="https://github.com/lokeshkrio">@lokeshkrio</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Dark/Light theme toggle (mirrors PassGuard pattern)
+  const toggle = document.getElementById('theme-toggle');
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+
+  toggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  });
+
+  // Animate stats on scroll into view
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) e.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.feature-card, .stat-card, .step, .packet-card').forEach(el => {
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
