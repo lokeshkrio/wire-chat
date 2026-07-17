@@ -2,9 +2,10 @@ import WebSocket from "ws";
 import chalk from "chalk";
 import blessed from "blessed";
 import { createMessagePacket } from "../shared/protocol.js";
+import { config } from "../shared/config.js";
 
-// Connect to the local WireChat WebSocket server
-const ws = new WebSocket("ws://127.0.0.1:5051");
+// Connect to the WireChat WebSocket server using global config
+const ws = new WebSocket(`${config.network.protocol}://${config.network.host}:${config.network.port}`);
 
 // Initialize blessed screen for Terminal UI
 const screen = blessed.screen({
@@ -148,8 +149,12 @@ inputBox.on('submit', (input) => {
       return;
     }
 
+    if (command === "quit") {
+      process.exit(0);
+    }
+
     if (command === "help") {
-      chatBox.log(`\n{cyan-fg}Available Commands:{/cyan-fg}\n/dm <user> <msg>\n/join <room>\n/create-room <name> [desc]\n/rooms\n/history [limit]\n/online\n/help\n`);
+      chatBox.log(`\n{cyan-fg}Available Commands:{/cyan-fg}\n/dm <user> <msg>\n/join <room>\n/create-room <name> [desc]\n/rooms\n/history [limit]\n/online\n/quit\n/help\n`);
       return;
     }
   } else {
@@ -171,8 +176,8 @@ ws.on("message", (message) => {
   if (packet.type === "auth_success") {
     username = packet.username;
     chatBox.log(`{green-fg}Successfully logged in as ${username}!{/green-fg}`);
-    // Auto-join general room on login
-    ws.send(JSON.stringify({ type: "command", command: "join", target: "general" }));
+    // Auto-join configured default room on login
+    ws.send(JSON.stringify({ type: "command", command: "join", target: config.defaults.defaultRoom }));
   }
   else if (packet.type === "message") {
     const time = new Date(packet.timestamp).toLocaleTimeString();

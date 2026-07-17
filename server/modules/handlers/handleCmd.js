@@ -2,6 +2,7 @@ import {
   createSystemPacket,
 } from "../../../shared/protocol.js";
 import { getHistory } from "../services/database.js";
+import { config } from "../../../shared/config.js";
 
 import {
   broadcastToRoom,
@@ -142,7 +143,7 @@ export function handleCommand(
       return;
     }
 
-    const limit = parseInt(packet.limit, 10) || 50;
+    const limit = parseInt(packet.limit, 10) || config.defaults.historyLimit;
     
     getHistory(ws.room, limit)
       .then((messages) => {

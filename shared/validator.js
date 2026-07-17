@@ -1,3 +1,5 @@
+import { config } from "./config.js";
+
 export function validatePacket(
   packet
 ) {
@@ -20,8 +22,8 @@ export function validatePacket(
     }
 
     if (
-      packet.username.length < 2 ||
-      packet.username.length > 20
+      packet.username.length < config.validation.username.minLength ||
+      packet.username.length > config.validation.username.maxLength
     ) {
       return false;
     }
@@ -42,7 +44,7 @@ export function validatePacket(
 
     if (
       packet.content.length === 0 ||
-      packet.content.length > 500
+      packet.content.length > config.validation.message.maxLength
     ) {
       return false;
     }

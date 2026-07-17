@@ -3,10 +3,13 @@ import argon2 from "argon2";
 import path from "path";
 import { fileURLToPath } from "url";
 
+import { config } from "../../../shared/config.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dbPath = path.resolve(__dirname, "../../../chat.db");
+// Resolve DB path dynamically based on config
+const dbPath = path.resolve(__dirname, "../../../", config.database.filename);
 
 // Using Node 22+ built-in sqlite module for synchronous DB operations
 const db = new DatabaseSync(dbPath);
@@ -87,10 +90,10 @@ export function insertMessage(room, sender, content, timestamp) {
 /**
  * Retrieves the most recent messages for a given room.
  * @param {string} room 
- * @param {number} limit Maximum number of messages to fetch (default: 50)
+ * @param {number} limit Maximum number of messages to fetch (default configured)
  * @returns {Promise<Array>} Array of message objects in chronological order
  */
-export function getHistory(room, limit = 50) {
+export function getHistory(room, limit = config.defaults.historyLimit) {
   return new Promise((resolve, reject) => {
     try {
       const stmt = db.prepare(

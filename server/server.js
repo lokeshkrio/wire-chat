@@ -11,17 +11,18 @@ import { handleCommand } from "./modules/handlers/handleCmd.js";
 import { createSystemPacket } from "../shared/protocol.js";
 
 import { broadcastToRoom } from "./modules/services/broadcast.js";
+import { config } from "../shared/config.js";
 
-// Initialize WebSocket server on port 5051
+// Initialize WebSocket server using configured port
 const wss = new WebSocketServer({
-    port: 5051,
+    port: config.network.port,
 });
 
 // In-memory stores for active users and rooms
 const users = new Map();
 const rooms = new Map();
-// Pre-create general room
-rooms.set("general", { users: new Set(), description: "General discussion" });
+// Pre-create general room as configured
+rooms.set(config.defaults.defaultRoom, { users: new Set(), description: "General discussion" });
 
 // Map packet types to their respective handler functions
 const handlers = {

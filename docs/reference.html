@@ -179,42 +179,47 @@
   <!-- Section 3: Server Configurations -->
   <section id="server-configs" style="padding-bottom: 40px;">
     <h2 class="section-title">Configuration Guide</h2>
-    <p class="section-subtitle">Modify parameters to adjust network settings, database locations, or styling defaults.</p>
+    <p class="section-subtitle">WireChat utilizes a centralized configuration file at <code>shared/config.js</code>. Modify settings there to adjust network, database, validation rules, or default limits globally.</p>
 
     <div class="cmd-table-wrap">
       <table class="cmd-table">
         <thead>
           <tr>
             <th>Setting / Variable</th>
-            <th>Default Value</th>
-            <th>Description / Path</th>
+            <th>config.js Key</th>
+            <th>Description</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><code>port</code></td>
-            <td><code>5051</code></td>
-            <td>Defined inside <code>server.js</code> when initiating the <code>WebSocketServer</code>.</td>
+            <td><code>Port</code></td>
+            <td><code>network.port</code></td>
+            <td>Sets the listening port for the WebSocket server and the target port for TUI clients (default: <code>5051</code>).</td>
           </tr>
           <tr>
-            <td><code>DatabaseSync Path</code></td>
-            <td><code>"../../../chat.db"</code></td>
-            <td>Resolved inside <code>database.js</code> relative to its directory in <code>server/modules/services/</code>.</td>
+            <td><code>Host</code></td>
+            <td><code>network.host</code></td>
+            <td>Sets the listening address and connection target host (default: <code>127.0.0.1</code>).</td>
           </tr>
           <tr>
-            <td><code>Argon2 Hashing Type</code></td>
-            <td><code>Argon2id</code></td>
-            <td>Controlled via defaults from the `argon2` module in <code>database.js</code>.</td>
+            <td><code>Database Path</code></td>
+            <td><code>database.filename</code></td>
+            <td>The SQLite filename located in the root of the project workspace (default: <code>chat.db</code>).</td>
           </tr>
           <tr>
-            <td><code>TUI Refresh Mode</code></td>
-            <td><code>smartCSR: true</code></td>
-            <td>Specified inside <code>client.js</code> when building the screen to optimize rendering.</td>
+            <td><code>Default Room</code></td>
+            <td><code>defaults.defaultRoom</code></td>
+            <td>The auto-joined chat room upon successful login (default: <code>general</code>).</td>
           </tr>
           <tr>
             <td><code>History Limit</code></td>
-            <td><code>50</code></td>
-            <td>The maximum messages fetched when <code>/history</code> is executed without args.</td>
+            <td><code>defaults.historyLimit</code></td>
+            <td>The default message count returned by <code>/history</code> (default: <code>50</code>).</td>
+          </tr>
+          <tr>
+            <td><code>Validation Constraints</code></td>
+            <td><code>validation</code></td>
+            <td>Globally configures username limits (min/max length) and message character bounds (default: 500 chars).</td>
           </tr>
         </tbody>
       </table>

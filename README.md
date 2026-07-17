@@ -114,6 +114,7 @@ Once connected, you can use the following commands within the client's input box
 
 * `/dm <username> <message>` - Send a private direct message.
 * `/online` - List all currently connected users.
+* `/quit` - Quit the application.
 * `/help` - Show the available commands.
 
 ---
