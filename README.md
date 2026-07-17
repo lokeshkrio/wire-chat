@@ -84,11 +84,7 @@ The server maintains:
 ### Clone the repository
 
 ```bash
-<<<<<<< HEAD
 git clone https://github.com/lokeshkrio/wire-chat.git
-=======
-git clone https://github.com/<username>/wire-chat.git
->>>>>>> d0911ed8ff905d31466ecdbe262c65348d4af6ab
 
 cd wire-chat
 ```

@@ -1,5 +1,4 @@
 import fs from "fs";
-<<<<<<< HEAD
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -15,16 +14,4 @@ export function logMessage(message) {
   }
 
   fs.appendFileSync(logFile, message + "\n");
-=======
-
-export function logMessage(
-  message
-) {
-
-  fs.appendFileSync(
-    "../logs/chat.log",
-    message + "\n"
-  );
-
->>>>>>> d0911ed8ff905d31466ecdbe262c65348d4af6ab
 }

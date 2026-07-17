@@ -1,10 +1,7 @@
 import {
   createSystemPacket,
 } from "../../../shared/protocol.js";
-<<<<<<< HEAD
 import { getHistory } from "../services/database.js";
-=======
->>>>>>> d0911ed8ff905d31466ecdbe262c65348d4af6ab
 
 import {
   broadcastToRoom,
@@ -61,7 +58,6 @@ export function handleCommand(
       packet.target;
 
     // REMOVE FROM OLD ROOM
-<<<<<<< HEAD
     if (ws.room && rooms.has(ws.room)) {
       rooms.get(ws.room).users.delete(ws);
     }
@@ -73,34 +69,6 @@ export function handleCommand(
 
     // JOIN NEW ROOM
     rooms.get(newRoom).users.add(ws);
-=======
-    if (
-      rooms.has(ws.room)
-    ) {
-
-      rooms
-        .get(ws.room)
-        .delete(ws);
-
-    }
-
-    // CREATE ROOM
-    if (
-      !rooms.has(newRoom)
-    ) {
-
-      rooms.set(
-        newRoom,
-        new Set()
-      );
-
-    }
-
-    // JOIN NEW ROOM
-    rooms
-      .get(newRoom)
-      .add(ws);
->>>>>>> d0911ed8ff905d31466ecdbe262c65348d4af6ab
 
     ws.room = newRoom;
 
@@ -119,7 +87,6 @@ export function handleCommand(
   }
 
   // ONLINE USERS
-<<<<<<< HEAD
   if (packet.command === "online") {
     const onlineUsers = [...users.keys()];
     ws.send(JSON.stringify({ type: "system", content: `Online: ${onlineUsers.join(", ")}` }));
@@ -185,24 +152,6 @@ export function handleCommand(
       });
 
     return;
-=======
-  if (
-    packet.command === "online"
-  ) {
-
-    const onlineUsers = [
-      ...users.keys(),
-    ];
-
-    ws.send(
-      JSON.stringify({
-        type: "system",
-        content:
-          `Online: ${onlineUsers.join(", ")}`,
-      })
-    );
-
->>>>>>> d0911ed8ff905d31466ecdbe262c65348d4af6ab
   }
 
 }
